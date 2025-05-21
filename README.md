@@ -1,3 +1,31 @@
+This is a modified version of Ardu-Stim which allows us to set the RPM by inputting a Honda RPM signal, as a square wave, into pin D2.
+
+This square wave is 2 pulses per revolution.
+
+TODO: Create a schematic
+RED 12v (switched/ignition)
+BLACK GND (grounding point)
+YELLOW RPM Signal from honda ecu
+BLUE D8 CRANK signal to mini ecu
+GREEN D9 CAM signal to mini ecu
+
+
+INPUT
+ECU 12V Square Wave → 10kΩ Resistor → Base of PN2222A
+Emitter of PN2222A → Ground (GND)
+Collector of PN2222A → Arduino Pin 2
+Pull-up Resistor (10kΩ) from Arduino Pin 2 → 5V
+
+OUTPUT
+Wiring the PN2222A in Your Setup
+1. Connections:
+Collector (C) → Mini ECU RPM signal
+Emitter (E) → Ground (common with Arduino & Mini ECU)
+Base (B) → Arduino output (via a 1kΩ resistor)
+Pull-up resistor (10kΩ) between Mini ECU RPM signal and 12V
+
+
+
 <div align="center">
 
 <img src="https://github.com/speeduino/wiki.js/raw/master/img/Speeduino%20logo_med.png" alt="Speeduino" width="600" />
