@@ -28,6 +28,7 @@
 #include <avr/pgmspace.h>
 #include <EEPROM.h>
 
+void calculateRPM();
 struct configTable config;
 struct status currentStatus;
 
@@ -53,7 +54,13 @@ uint8_t sweep_direction = ASCENDING;
 /* Less sensitive globals */
 uint8_t bitshift = 0;
 
+volatile unsigned int inputRpm;
+volatile unsigned long lastPulseTime = 0;
+const int maxIoRPM = 7800;
 
+unsigned long previousMillis = 0;  // Stores the last time the boolean was updated
+const long interval = 1000;        // 10 seconds in milliseconds
+bool enabled = false;
 
 
 wheels Wheels[MAX_WHEELS] = {
@@ -208,6 +215,11 @@ void setup() {
   pinMode(9, OUTPUT); /* Secondary (cam1 usually) output */
   pinMode(10, OUTPUT); /* Tertiary (cam2 usually) output */
   pinMode(11, OUTPUT); /* Knock signal for seank, ony on LS1 pattern, NOT IMPL YET */
+
+	
+// Calculate interrupt on every rising event on this pin.
+  pinMode(2, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(2), calculateRPM, RISING);
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   pinMode(53, OUTPUT); /* crank */
   pinMode(52, OUTPUT); /* cam 1 */
@@ -222,6 +234,24 @@ void setup() {
 
 } // End setup
 
+#define MIN_PULSE_TIME 250     // Minimum time between pulses (~24,000 RPM max)
+#define MAX_PULSE_TIME 300000  // Maximum time between pulses (~100 RPM min)
+void calculateRPM() {
+   unsigned long currentTime = micros();
+   unsigned long timeDifference = currentTime - lastPulseTime;
+
+   if (timeDifference > MIN_PULSE_TIME && timeDifference < MAX_PULSE_TIME) {
+     int calculatedRPM = (int)(30.0e6 / timeDifference);
+ 
+     if (calculatedRPM > maxIoRPM) {
+       calculatedRPM = maxIoRPM;
+     }
+     
+     inputRpm = calculatedRPM;
+   }
+ 
+   lastPulseTime = currentTime;
+ }
 
 //! ADC ISR for alternating between ADC pins 0 and 1
 /*!
@@ -292,11 +322,19 @@ void loop()
 
   if(config.mode == POT_RPM)
   {
-    if (adc0_read_complete == true)
-    {
-      adc0_read_complete = false;
-      tmp_rpm = adc0 << TMP_RPM_SHIFT;
-      if (tmp_rpm > TMP_RPM_CAP) { tmp_rpm = TMP_RPM_CAP; }
+
+    if (currentMillis - previousMillis >= interval) {
+      // Save the last time the boolean was set
+      previousMillis = currentMillis;
+ 
+      // Set the boolean to true after 10 seconds
+      enabled = true;
+    }
+
+    if (enabled) {
+      tmp_rpm = inputRpm;
+    } else {
+      tmp_rpm = 30;
     }
   }
   else if (config.mode == LINEAR_SWEPT_RPM)
