@@ -1,15 +1,20 @@
 This is a modified version of Ardu-Stim which allows us to set the RPM by inputting a Honda RPM signal, as a square wave, into pin D2.
-
 This square wave is 2 pulses per revolution.
+
+This is also what i made to get a K24a turbo swapped R56 mini RPM cluster working. Code is messy and quickly written, had a small delay to prevent the 40000 rpm issue even though i set a hard limit :(
+
 ```
 TODO: Create a schematic
-RED 12v (switched/ignition)
-BLACK GND (grounding point)
-YELLOW RPM Signal from honda ecu
-BLUE D8 CRANK signal to mini ecu
-GREEN D9 CAM signal to mini ecu
+RED - 12v (switched/ignition)
+BLACK - GND (grounding point, battery -)
+YELLOW - RPM Signal from honda ecu
+BLUE D8 - CRANK signal to mini ecu
+GREEN D9 - CAM signal to mini ecu
+
+I do not know which pins should be used unfortunatly
 
 
+HARDWARE
 INPUT
 ECU 12V Square Wave → 10kΩ Resistor → Base of PN2222A
 Emitter of PN2222A → Ground (GND)
